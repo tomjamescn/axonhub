@@ -71,8 +71,11 @@ const queryClient = new QueryClient({
 });
 
 // Create a new router instance
+const routerBasePath = __API_BASE_PATH__ || '/';
+
 const router = createRouter({
   routeTree,
+  basepath: routerBasePath === '/' ? undefined : routerBasePath,
   context: { queryClient },
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,

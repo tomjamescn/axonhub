@@ -162,7 +162,7 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
       return null;
     }
 
-    const url = `/admin/requests/${encodeURIComponent(requestIdNumber)}/content`;
+    const url = `${__API_BASE_PATH__ || ''}/admin/requests/${encodeURIComponent(requestIdNumber)}/content`;
     const resp = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,

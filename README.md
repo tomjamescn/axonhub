@@ -279,6 +279,30 @@
 
 让你的 Agent 读取并遵循 [`deploy-axonhub`](https://github.com/looplj/axonhub-skills/blob/main/deploy-axonhub/SKILL.md) 来部署 AxonHub。
 
+### 子路径 / URL 前缀部署 | Sub-Path / URL Prefix Deployment
+
+支持将 AxonHub 部署在自定义 URL 前缀下（如 `https://example.com/llmproxy`），便于反向代理聚合。该特性仅在**构建期**生效，后端无需任何改动，由反向代理剥掉前缀后转发到后端根路径。
+
+1. **构建带前缀的镜像**
+
+   ```bash
+   docker build --build-arg BASE_PATH=/llmproxy -t axonhub:llmproxy .
+   ```
+
+   前缀默认 `/`（行为与原来完全一致）；`BASE_PATH` 会以 `VITE_BASE_PATH` / `VITE_API_BASE_PATH` 注入前端构建。
+
+2. **反向代理剥掉前缀转发**（以 nginx 为例）
+
+   ```nginx
+   location /llmproxy/ {
+       proxy_pass http://axonhub:8090/;   # 末尾斜杠会剥掉 /llmproxy 前缀
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection "upgrade";   # SSE / WebSocket 需要
+   }
+   ```
+
+   之后访问 `https://example.com/llmproxy/` 即可，页面、登录、GraphQL、Playground、`/llmproxy/v1` 等全部可用。
+
 ---
 
 ## ⚡ 快速开始 | Quick Start

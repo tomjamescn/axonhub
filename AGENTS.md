@@ -81,3 +81,38 @@ All detailed rules are in `.agent/rules/`:
 | [e2e.md](.agent/rules/e2e.md) | `frontend/tests/**/*.ts` | E2E testing rules |
 | [docs.md](.agent/rules/docs.md) | `docs/**/*.md` | Documentation rules |
 | [workflows/add-channel.md](.agent/rules/workflows/add-channel.md) | Manual | Workflow for adding a new channel |
+
+## Go Modules (complete list)
+
+Besides the two listed above, the repo contains four more independent Go modules — always run `go` commands from the owning module directory:
+
+- `integration_test/openai/`, `integration_test/anthropic/`, `integration_test/gemini/` — provider integration test modules; need a running AxonHub plus a real provider API key. Not covered by `make test-backend-all`.
+- `cmd/schema/` — config JSON-schema generator (`make generate-schema`).
+- `examples/openapi/` — example clients.
+
+## Codegen
+
+- After any Ent schema (`internal/ent/schema/`) or GraphQL schema (`internal/server/gql/**/*.graphql`) change, run `make generate`.
+- `internal/ent/migrate/schema.go` is generated output — edit the owning schema's `Indexes()`/fields, never the generated file.
+- GraphQL: edit `*.graphql` first; `ent.graphql` is generated. New GraphQL structs need a mapping in `gqlgen.yml`.
+
+## Sub-Path / URL Prefix Deployment
+
+AxonHub can be served under a custom URL prefix (e.g. `/llmproxy`) for reverse-proxy deployments. This is a **frontend build-time** concern only — the backend is unchanged; the reverse proxy strips the prefix before forwarding to the backend root.
+
+- `Dockerfile` exposes `ARG BASE_PATH` (default `/`), which sets `VITE_BASE_PATH` and `VITE_API_BASE_PATH` for the frontend build stage.
+- `frontend/vite.config.ts` reads those env vars: sets Vite `base` and injects the build-time global `__API_BASE_PATH__` (declared in `frontend/src/vite-env.d.ts`).
+- Every API/asset path derives the prefix from `__API_BASE_PATH__`: `apiRequest` (via `API_BASE_URL`), `GRAPHQL_ENDPOINT`, TanStack Router `basepath`, the playground chat endpoint, request-detail fetches, and the sign-in redirects. With the default `/` the prefix is empty and behavior is unchanged.
+- If you add a new raw `fetch`/`WebSocket`/`EventSource` call (one that does not go through `apiRequest` or `GRAPHQL_ENDPOINT`), prefix it with `${__API_BASE_PATH__ || ''}` or sub-path deploys will break.
+- Build with a prefix: `docker build --build-arg BASE_PATH=/llmproxy -t axonhub:llmproxy .`
+- The reverse proxy must strip the prefix, e.g. nginx: `location /llmproxy/ { proxy_pass http://axonhub:8090/; }` (the trailing slash on `proxy_pass` drops the prefix). Keep `Upgrade`/`Connection` headers for SSE/WebSocket.
+
+## Developer Commands
+
+- Backend tests (root + `llm` modules): `make test-backend-all`.
+- Lint: `make lint` (golangci-lint over all Go modules).
+- Frontend unit tests: `cd frontend && pnpm test:unit` (plain `node --test`, no framework).
+- E2E: `make e2e-test` (Playwright) — starts a throwaway backend on port **8099** with a fresh DB; env `AXONHUB_E2E_DB_TYPE` for MySQL/Postgres. E2E login: `my@example.com` / `pwd123456`.
+- Migration tests: `make migration-test TAG=vX.Y.Z`, `make migration-test-all`.
+- Docker build: `docker build --build-arg GOPROXY=https://goproxy.cn -t <tag> .` when the build container cannot reach `proxy.golang.org`.
+- Docker build with URL prefix: `docker build --build-arg BASE_PATH=/llmproxy -t <tag> .` (see [Sub-Path / URL Prefix Deployment](#sub-path--url-prefix-deployment)).

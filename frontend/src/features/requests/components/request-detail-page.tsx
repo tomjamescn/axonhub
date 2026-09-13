@@ -252,7 +252,7 @@ export default function RequestDetailPage() {
 
     async function connectPreview() {
       try {
-        const response = await fetch(`/admin/requests/${encodeURIComponent(requestIdNumber)}/preview`, {
+        const response = await fetch(`${__API_BASE_PATH__ || ''}/admin/requests/${encodeURIComponent(requestIdNumber)}/preview`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'X-Project-ID': selectedProjectId,

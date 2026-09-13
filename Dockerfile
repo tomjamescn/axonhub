@@ -1,5 +1,9 @@
 FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend-builder
 
+ARG BASE_PATH=/
+ENV VITE_BASE_PATH=$BASE_PATH
+ENV VITE_API_BASE_PATH=$BASE_PATH
+
 WORKDIR /build
 RUN corepack enable && corepack prepare pnpm@10 --activate
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
@@ -16,6 +20,8 @@ COPY --from=frontend-builder /build/dist /dist
 
 FROM golang:alpine AS backend-builder
 
+# Optional Go module proxy override, e.g. --build-arg GOPROXY=https://goproxy.cn
+ARG GOPROXY
 WORKDIR /build
 
 RUN apk add --no-cache git ca-certificates tzdata
@@ -24,6 +30,7 @@ COPY go.mod go.sum ./
 COPY llm/go.mod llm/go.sum llm/
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
+    if [ -n "$GOPROXY" ]; then export GOPROXY="$GOPROXY"; fi; \
     GOTOOLCHAIN=auto go mod download
 
 COPY . .
@@ -35,6 +42,7 @@ ENV GO111MODULE=on \
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
+    if [ -n "$GOPROXY" ]; then export GOPROXY="$GOPROXY"; fi; \
     GOTOOLCHAIN=auto go build \
     -tags=nomsgpack \
     -ldflags "-s -w -X 'github.com/looplj/axonhub/internal/build.Version=$(cat internal/build/VERSION 2>/dev/null || echo dev)' -X 'github.com/looplj/axonhub/internal/build.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)'" \

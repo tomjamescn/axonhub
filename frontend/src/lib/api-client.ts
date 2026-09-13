@@ -1,7 +1,7 @@
 import { AuthUser, getTokenFromStorage } from '@/stores/authStore';
 
-// Same domain, no need to add baseURL.
-export const API_BASE_URL = '';
+// Same domain, base path injected at build time.
+export const API_BASE_URL = __API_BASE_PATH__;
 
 type ErrorResponseBody = {
   message?: string;

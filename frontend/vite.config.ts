@@ -6,7 +6,14 @@ import tailwindcss from '@tailwindcss/vite';
 import tanstackRouter from '@tanstack/router-plugin/vite';
 
 // https://vite.dev/config/
+const basePath = process.env.VITE_BASE_PATH || '/';
+const base = basePath === '/' ? '/' : basePath.endsWith('/') ? basePath : `${basePath}/`;
+
 export default defineConfig({
+  base,
+  define: {
+    __API_BASE_PATH__: JSON.stringify(process.env.VITE_API_BASE_PATH || ''),
+  },
   plugins: [
     tanstackRouter({
       target: 'react',

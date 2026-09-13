@@ -157,7 +157,7 @@ export default function Playground() {
 
   const { messages, sendMessage, status, setMessages, regenerate, stop } = useChat({
     transport: new DefaultChatTransport({
-      api: '/admin/playground/chat',
+      api: `${__API_BASE_PATH__ || ''}/admin/playground/chat`,
       credentials: 'include',
       headers: () => {
         const headers: Record<string, string> = {
@@ -384,11 +384,11 @@ export default function Playground() {
             enabled: true,
             position: 'bottom',
             theme: 'dark',
-            streamCapture: {
-              enabled: true,
-              endpoint: '/admin/playground/chat',
-              autoConnect: true,
-            },
+              streamCapture: {
+                enabled: true,
+                endpoint: `${__API_BASE_PATH__ || ''}/admin/playground/chat`,
+                autoConnect: true,
+              },
           }}
           enabled={true}
         />

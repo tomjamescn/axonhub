@@ -35,7 +35,8 @@ export function extractOperationName(query: string): string | undefined {
   return undefined;
 }
 
-export const GRAPHQL_ENDPOINT = '/admin/graphql';
+const basePath = __API_BASE_PATH__ || '';
+export const GRAPHQL_ENDPOINT = `${basePath}/admin/graphql`;
 
 function isForbiddenGraphQLError(error: any): boolean {
   return error?.extensions?.code === 'FORBIDDEN' || error?.message?.toLowerCase().includes('permission denied');
@@ -97,7 +98,7 @@ export async function graphqlRequest<T>(
     // Clear token and redirect to login
     removeTokenFromStorage();
     toast.error(i18n.t('common.errors.sessionExpiredSignIn'));
-    window.location.href = '/sign-in';
+    window.location.href = `${__API_BASE_PATH__ || ''}/sign-in`;
     throw new GraphQLRequestError('Unauthorized', { status: response.status, isAuthError: true });
   }
 
@@ -139,7 +140,7 @@ export async function graphqlRequest<T>(
       // Clear token and redirect to login
       removeTokenFromStorage();
       toast.error(i18n.t('common.errors.sessionExpiredSignIn'));
-      window.location.href = '/sign-in';
+      window.location.href = `${__API_BASE_PATH__ || ''}/sign-in`;
       throw new GraphQLRequestError('Unauthorized', { status: 401, isAuthError: true });
     }
 
