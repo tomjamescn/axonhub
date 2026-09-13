@@ -31,6 +31,7 @@ var Module = fx.Module("biz",
 	fx.Provide(NewChannelProbeService),
 	fx.Provide(NewPromptService),
 	fx.Provide(NewPromptProtectionRuleService),
+	fx.Provide(NewRequestRewriteRuleService),
 	fx.Provide(NewQuotaService),
 	fx.Provide(NewProviderQuotaService),
 	fx.Provide(NewOIDCService),
@@ -105,6 +106,14 @@ var Module = fx.Module("biz",
 		})
 	}),
 	fx.Invoke(func(lc fx.Lifecycle, svc *PromptProtectionRuleService) {
+		lc.Append(fx.Hook{
+			OnStop: func(ctx context.Context) error {
+				svc.Stop()
+				return nil
+			},
+		})
+	}),
+	fx.Invoke(func(lc fx.Lifecycle, svc *RequestRewriteRuleService) {
 		lc.Append(fx.Hook{
 			OnStop: func(ctx context.Context) error {
 				svc.Stop()

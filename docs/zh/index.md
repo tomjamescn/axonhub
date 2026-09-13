@@ -25,6 +25,7 @@
 | [请求覆盖](guides/request-override.md) | 动态修改请求参数 |
 | [安全功能](guides/security.md) | IP 访问控制、IP 黑名单和 API Key IP 限制 |
 | [提示词保护规则](guides/prompt-protection-rules.md) | 敏感信息过滤和保护 |
+| [请求改写规则](guides/request-rewrite-rules.md) | 按模型改写请求字段值 |
 
 ### 🤖 AI 编程工具集成
 

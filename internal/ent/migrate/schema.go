@@ -703,6 +703,37 @@ var (
 			},
 		},
 	}
+	// RequestRewriteRulesColumns holds the columns for the "request_rewrite_rules" table.
+	RequestRewriteRulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("CURRENT_TIMESTAMP")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("CURRENT_TIMESTAMP")},
+		{Name: "deleted_at", Type: field.TypeInt, Default: 0},
+		{Name: "user_id", Type: field.TypeInt, Nullable: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "model_pattern", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"enabled", "disabled", "archived"}, Default: "disabled"},
+		{Name: "field_maps", Type: field.TypeJSON},
+	}
+	// RequestRewriteRulesTable holds the schema information for the "request_rewrite_rules" table.
+	RequestRewriteRulesTable = &schema.Table{
+		Name:       "request_rewrite_rules",
+		Columns:    RequestRewriteRulesColumns,
+		PrimaryKey: []*schema.Column{RequestRewriteRulesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "request_rewrite_rules_by_user_name",
+				Unique:  true,
+				Columns: []*schema.Column{RequestRewriteRulesColumns[4], RequestRewriteRulesColumns[5], RequestRewriteRulesColumns[3]},
+			},
+			{
+				Name:    "requestrewriterule_status",
+				Unique:  false,
+				Columns: []*schema.Column{RequestRewriteRulesColumns[8]},
+			},
+		},
+	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1063,6 +1094,7 @@ var (
 		ProviderQuotaStatusTable,
 		RequestsTable,
 		RequestExecutionsTable,
+		RequestRewriteRulesTable,
 		RolesTable,
 		SystemsTable,
 		ThreadsTable,

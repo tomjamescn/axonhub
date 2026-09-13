@@ -26,6 +26,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
+	"github.com/looplj/axonhub/internal/ent/requestrewriterule"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/system"
 	"github.com/looplj/axonhub/internal/ent/thread"
@@ -551,6 +552,33 @@ func (f TraverseRequestExecution) Traverse(ctx context.Context, q ent.Query) err
 	return fmt.Errorf("unexpected query type %T. expect *ent.RequestExecutionQuery", q)
 }
 
+// The RequestRewriteRuleFunc type is an adapter to allow the use of ordinary function as a Querier.
+type RequestRewriteRuleFunc func(context.Context, *ent.RequestRewriteRuleQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f RequestRewriteRuleFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.RequestRewriteRuleQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.RequestRewriteRuleQuery", q)
+}
+
+// The TraverseRequestRewriteRule type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseRequestRewriteRule func(context.Context, *ent.RequestRewriteRuleQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseRequestRewriteRule) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseRequestRewriteRule) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.RequestRewriteRuleQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.RequestRewriteRuleQuery", q)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary function as a Querier.
 type RoleFunc func(context.Context, *ent.RoleQuery) (ent.Value, error)
 
@@ -804,6 +832,8 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.RequestQuery, predicate.Request, request.OrderOption]{typ: ent.TypeRequest, tq: q}, nil
 	case *ent.RequestExecutionQuery:
 		return &query[*ent.RequestExecutionQuery, predicate.RequestExecution, requestexecution.OrderOption]{typ: ent.TypeRequestExecution, tq: q}, nil
+	case *ent.RequestRewriteRuleQuery:
+		return &query[*ent.RequestRewriteRuleQuery, predicate.RequestRewriteRule, requestrewriterule.OrderOption]{typ: ent.TypeRequestRewriteRule, tq: q}, nil
 	case *ent.RoleQuery:
 		return &query[*ent.RoleQuery, predicate.Role, role.OrderOption]{typ: ent.TypeRole, tq: q}, nil
 	case *ent.SystemQuery:

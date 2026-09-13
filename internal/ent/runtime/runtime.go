@@ -22,6 +22,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
+	"github.com/looplj/axonhub/internal/ent/requestrewriterule"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/schema"
 	"github.com/looplj/axonhub/internal/ent/system"
@@ -713,6 +714,57 @@ func init() {
 	requestexecutionDescPassThroughApplied := requestexecutionFields[20].Descriptor()
 	// requestexecution.DefaultPassThroughApplied holds the default value on creation for the pass_through_applied field.
 	requestexecution.DefaultPassThroughApplied = requestexecutionDescPassThroughApplied.Default.(bool)
+	requestrewriteruleMixin := schema.RequestRewriteRule{}.Mixin()
+	requestrewriterule.Policy = privacy.NewPolicies(schema.RequestRewriteRule{})
+	requestrewriterule.Hooks[0] = func(next ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if err := requestrewriterule.Policy.EvalMutation(ctx, m); err != nil {
+				return nil, err
+			}
+			return next.Mutate(ctx, m)
+		})
+	}
+	requestrewriteruleMixinHooks1 := requestrewriteruleMixin[1].Hooks()
+
+	requestrewriterule.Hooks[1] = requestrewriteruleMixinHooks1[0]
+	requestrewriteruleMixinInters1 := requestrewriteruleMixin[1].Interceptors()
+	requestrewriterule.Interceptors[0] = requestrewriteruleMixinInters1[0]
+	requestrewriteruleMixinFields0 := requestrewriteruleMixin[0].Fields()
+	_ = requestrewriteruleMixinFields0
+	requestrewriteruleMixinFields1 := requestrewriteruleMixin[1].Fields()
+	_ = requestrewriteruleMixinFields1
+	requestrewriteruleFields := schema.RequestRewriteRule{}.Fields()
+	_ = requestrewriteruleFields
+	// requestrewriteruleDescCreatedAt is the schema descriptor for created_at field.
+	requestrewriteruleDescCreatedAt := requestrewriteruleMixinFields0[0].Descriptor()
+	// requestrewriterule.DefaultCreatedAt holds the default value on creation for the created_at field.
+	requestrewriterule.DefaultCreatedAt = requestrewriteruleDescCreatedAt.Default.(func() time.Time)
+	// requestrewriteruleDescUpdatedAt is the schema descriptor for updated_at field.
+	requestrewriteruleDescUpdatedAt := requestrewriteruleMixinFields0[1].Descriptor()
+	// requestrewriterule.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	requestrewriterule.DefaultUpdatedAt = requestrewriteruleDescUpdatedAt.Default.(func() time.Time)
+	// requestrewriterule.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	requestrewriterule.UpdateDefaultUpdatedAt = requestrewriteruleDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// requestrewriteruleDescDeletedAt is the schema descriptor for deleted_at field.
+	requestrewriteruleDescDeletedAt := requestrewriteruleMixinFields1[0].Descriptor()
+	// requestrewriterule.DefaultDeletedAt holds the default value on creation for the deleted_at field.
+	requestrewriterule.DefaultDeletedAt = requestrewriteruleDescDeletedAt.Default.(int)
+	// requestrewriteruleDescName is the schema descriptor for name field.
+	requestrewriteruleDescName := requestrewriteruleFields[1].Descriptor()
+	// requestrewriterule.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	requestrewriterule.NameValidator = requestrewriteruleDescName.Validators[0].(func(string) error)
+	// requestrewriteruleDescDescription is the schema descriptor for description field.
+	requestrewriteruleDescDescription := requestrewriteruleFields[2].Descriptor()
+	// requestrewriterule.DefaultDescription holds the default value on creation for the description field.
+	requestrewriterule.DefaultDescription = requestrewriteruleDescDescription.Default.(string)
+	// requestrewriteruleDescModelPattern is the schema descriptor for model_pattern field.
+	requestrewriteruleDescModelPattern := requestrewriteruleFields[3].Descriptor()
+	// requestrewriterule.ModelPatternValidator is a validator for the "model_pattern" field. It is called by the builders before save.
+	requestrewriterule.ModelPatternValidator = requestrewriteruleDescModelPattern.Validators[0].(func(string) error)
+	// requestrewriteruleDescFieldMaps is the schema descriptor for field_maps field.
+	requestrewriteruleDescFieldMaps := requestrewriteruleFields[5].Descriptor()
+	// requestrewriterule.DefaultFieldMaps holds the default value on creation for the field_maps field.
+	requestrewriterule.DefaultFieldMaps = requestrewriteruleDescFieldMaps.Default.([]objects.RequestRewriteFieldMap)
 	roleMixin := schema.Role{}.Mixin()
 	role.Policy = privacy.NewPolicies(schema.Role{})
 	role.Hooks[0] = func(next ent.Mutator) ent.Mutator {

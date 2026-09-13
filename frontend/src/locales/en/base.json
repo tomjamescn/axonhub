@@ -339,5 +339,6 @@
   "auth.signIn.footer.agreement": "By signing in, you agree to our Terms of Service and Privacy Policy",
   "settings.nav.appearance": "Appearance",
   "settings.nav.display": "Display",
-  "settings.nav.notifications": "Notifications"
+  "settings.nav.notifications": "Notifications",
+  "sidebar.items.requestRewriteRules": "Rewrite Rules"
 }

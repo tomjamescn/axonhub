@@ -213,6 +213,18 @@ func (f RequestExecutionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RequestExecutionMutation", m)
 }
 
+// The RequestRewriteRuleFunc type is an adapter to allow the use of ordinary
+// function as RequestRewriteRule mutator.
+type RequestRewriteRuleFunc func(context.Context, *ent.RequestRewriteRuleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RequestRewriteRuleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RequestRewriteRuleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RequestRewriteRuleMutation", m)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary
 // function as Role mutator.
 type RoleFunc func(context.Context, *ent.RoleMutation) (ent.Value, error)

@@ -13,6 +13,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/prompt"
 	"github.com/looplj/axonhub/internal/ent/promptprotectionrule"
 	"github.com/looplj/axonhub/internal/ent/request"
+	"github.com/looplj/axonhub/internal/ent/requestrewriterule"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/thread"
 	"github.com/looplj/axonhub/internal/ent/trace"
@@ -1137,6 +1138,80 @@ func (c *RequestUpdate) SetInput(i UpdateRequestInput) *RequestUpdate {
 
 // SetInput applies the change-set in the UpdateRequestInput on the RequestUpdateOne builder.
 func (c *RequestUpdateOne) SetInput(i UpdateRequestInput) *RequestUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateRequestRewriteRuleInput represents a mutation input for creating requestrewriterules.
+type CreateRequestRewriteRuleInput struct {
+	UserID       *int
+	Name         string
+	Description  *string
+	ModelPattern string
+	FieldMaps    []objects.RequestRewriteFieldMap
+}
+
+// Mutate applies the CreateRequestRewriteRuleInput on the RequestRewriteRuleMutation builder.
+func (i *CreateRequestRewriteRuleInput) Mutate(m *RequestRewriteRuleMutation) {
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	m.SetName(i.Name)
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
+	m.SetModelPattern(i.ModelPattern)
+	if v := i.FieldMaps; v != nil {
+		m.SetFieldMaps(v)
+	}
+}
+
+// SetInput applies the change-set in the CreateRequestRewriteRuleInput on the RequestRewriteRuleCreate builder.
+func (c *RequestRewriteRuleCreate) SetInput(i CreateRequestRewriteRuleInput) *RequestRewriteRuleCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateRequestRewriteRuleInput represents a mutation input for updating requestrewriterules.
+type UpdateRequestRewriteRuleInput struct {
+	Name            *string
+	Description     *string
+	ModelPattern    *string
+	Status          *requestrewriterule.Status
+	FieldMaps       []objects.RequestRewriteFieldMap
+	AppendFieldMaps []objects.RequestRewriteFieldMap
+}
+
+// Mutate applies the UpdateRequestRewriteRuleInput on the RequestRewriteRuleMutation builder.
+func (i *UpdateRequestRewriteRuleInput) Mutate(m *RequestRewriteRuleMutation) {
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
+	if v := i.ModelPattern; v != nil {
+		m.SetModelPattern(*v)
+	}
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
+	}
+	if v := i.FieldMaps; v != nil {
+		m.SetFieldMaps(v)
+	}
+	if i.AppendFieldMaps != nil {
+		m.AppendFieldMaps(i.FieldMaps)
+	}
+}
+
+// SetInput applies the change-set in the UpdateRequestRewriteRuleInput on the RequestRewriteRuleUpdate builder.
+func (c *RequestRewriteRuleUpdate) SetInput(i UpdateRequestRewriteRuleInput) *RequestRewriteRuleUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateRequestRewriteRuleInput on the RequestRewriteRuleUpdateOne builder.
+func (c *RequestRewriteRuleUpdateOne) SetInput(i UpdateRequestRewriteRuleInput) *RequestRewriteRuleUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }

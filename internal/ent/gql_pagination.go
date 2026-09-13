@@ -30,6 +30,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
+	"github.com/looplj/axonhub/internal/ent/requestrewriterule"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/system"
 	"github.com/looplj/axonhub/internal/ent/thread"
@@ -5219,6 +5220,320 @@ func (_m *RequestExecution) ToEdge(order *RequestExecutionOrder) *RequestExecuti
 		order = DefaultRequestExecutionOrder
 	}
 	return &RequestExecutionEdge{
+		Node:   _m,
+		Cursor: order.Field.toCursor(_m),
+	}
+}
+
+// RequestRewriteRuleEdge is the edge representation of RequestRewriteRule.
+type RequestRewriteRuleEdge struct {
+	Node   *RequestRewriteRule `json:"node"`
+	Cursor Cursor              `json:"cursor"`
+}
+
+// RequestRewriteRuleConnection is the connection containing edges to RequestRewriteRule.
+type RequestRewriteRuleConnection struct {
+	Edges      []*RequestRewriteRuleEdge `json:"edges"`
+	PageInfo   PageInfo                  `json:"pageInfo"`
+	TotalCount int                       `json:"totalCount"`
+}
+
+func (c *RequestRewriteRuleConnection) build(nodes []*RequestRewriteRule, pager *requestrewriterulePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *RequestRewriteRule
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *RequestRewriteRule {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *RequestRewriteRule {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*RequestRewriteRuleEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &RequestRewriteRuleEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// RequestRewriteRulePaginateOption enables pagination customization.
+type RequestRewriteRulePaginateOption func(*requestrewriterulePager) error
+
+// WithRequestRewriteRuleOrder configures pagination ordering.
+func WithRequestRewriteRuleOrder(order *RequestRewriteRuleOrder) RequestRewriteRulePaginateOption {
+	if order == nil {
+		order = DefaultRequestRewriteRuleOrder
+	}
+	o := *order
+	return func(pager *requestrewriterulePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultRequestRewriteRuleOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithRequestRewriteRuleFilter configures pagination filter.
+func WithRequestRewriteRuleFilter(filter func(*RequestRewriteRuleQuery) (*RequestRewriteRuleQuery, error)) RequestRewriteRulePaginateOption {
+	return func(pager *requestrewriterulePager) error {
+		if filter == nil {
+			return errors.New("RequestRewriteRuleQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type requestrewriterulePager struct {
+	reverse bool
+	order   *RequestRewriteRuleOrder
+	filter  func(*RequestRewriteRuleQuery) (*RequestRewriteRuleQuery, error)
+}
+
+func newRequestRewriteRulePager(opts []RequestRewriteRulePaginateOption, reverse bool) (*requestrewriterulePager, error) {
+	pager := &requestrewriterulePager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultRequestRewriteRuleOrder
+	}
+	return pager, nil
+}
+
+func (p *requestrewriterulePager) applyFilter(query *RequestRewriteRuleQuery) (*RequestRewriteRuleQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *requestrewriterulePager) toCursor(_m *RequestRewriteRule) Cursor {
+	return p.order.Field.toCursor(_m)
+}
+
+func (p *requestrewriterulePager) applyCursors(query *RequestRewriteRuleQuery, after, before *Cursor) (*RequestRewriteRuleQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultRequestRewriteRuleOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *requestrewriterulePager) applyOrder(query *RequestRewriteRuleQuery) *RequestRewriteRuleQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultRequestRewriteRuleOrder.Field {
+		query = query.Order(DefaultRequestRewriteRuleOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *requestrewriterulePager) orderExpr(query *RequestRewriteRuleQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultRequestRewriteRuleOrder.Field {
+			b.Comma().Ident(DefaultRequestRewriteRuleOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to RequestRewriteRule.
+func (_m *RequestRewriteRuleQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...RequestRewriteRulePaginateOption,
+) (*RequestRewriteRuleConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newRequestRewriteRulePager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if _m, err = pager.applyFilter(_m); err != nil {
+		return nil, err
+	}
+	conn := &RequestRewriteRuleConnection{Edges: []*RequestRewriteRuleEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := _m.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if _m, err = pager.applyCursors(_m, after, before); err != nil {
+		return nil, err
+	}
+	limit := paginateLimit(first, last)
+	if limit != 0 {
+		_m.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := _m.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	_m = pager.applyOrder(_m)
+	nodes, err := _m.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// RequestRewriteRuleOrderFieldCreatedAt orders RequestRewriteRule by created_at.
+	RequestRewriteRuleOrderFieldCreatedAt = &RequestRewriteRuleOrderField{
+		Value: func(_m *RequestRewriteRule) (ent.Value, error) {
+			return _m.CreatedAt, nil
+		},
+		column: requestrewriterule.FieldCreatedAt,
+		toTerm: requestrewriterule.ByCreatedAt,
+		toCursor: func(_m *RequestRewriteRule) Cursor {
+			return Cursor{
+				ID:    _m.ID,
+				Value: _m.CreatedAt,
+			}
+		},
+	}
+	// RequestRewriteRuleOrderFieldUpdatedAt orders RequestRewriteRule by updated_at.
+	RequestRewriteRuleOrderFieldUpdatedAt = &RequestRewriteRuleOrderField{
+		Value: func(_m *RequestRewriteRule) (ent.Value, error) {
+			return _m.UpdatedAt, nil
+		},
+		column: requestrewriterule.FieldUpdatedAt,
+		toTerm: requestrewriterule.ByUpdatedAt,
+		toCursor: func(_m *RequestRewriteRule) Cursor {
+			return Cursor{
+				ID:    _m.ID,
+				Value: _m.UpdatedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f RequestRewriteRuleOrderField) String() string {
+	var str string
+	switch f.column {
+	case RequestRewriteRuleOrderFieldCreatedAt.column:
+		str = "CREATED_AT"
+	case RequestRewriteRuleOrderFieldUpdatedAt.column:
+		str = "UPDATED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f RequestRewriteRuleOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *RequestRewriteRuleOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("RequestRewriteRuleOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *RequestRewriteRuleOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *RequestRewriteRuleOrderFieldUpdatedAt
+	default:
+		return fmt.Errorf("%s is not a valid RequestRewriteRuleOrderField", str)
+	}
+	return nil
+}
+
+// RequestRewriteRuleOrderField defines the ordering field of RequestRewriteRule.
+type RequestRewriteRuleOrderField struct {
+	// Value extracts the ordering value from the given RequestRewriteRule.
+	Value    func(*RequestRewriteRule) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) requestrewriterule.OrderOption
+	toCursor func(*RequestRewriteRule) Cursor
+}
+
+// RequestRewriteRuleOrder defines the ordering of RequestRewriteRule.
+type RequestRewriteRuleOrder struct {
+	Direction OrderDirection                `json:"direction"`
+	Field     *RequestRewriteRuleOrderField `json:"field"`
+}
+
+// DefaultRequestRewriteRuleOrder is the default ordering of RequestRewriteRule.
+var DefaultRequestRewriteRuleOrder = &RequestRewriteRuleOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &RequestRewriteRuleOrderField{
+		Value: func(_m *RequestRewriteRule) (ent.Value, error) {
+			return _m.ID, nil
+		},
+		column: requestrewriterule.FieldID,
+		toTerm: requestrewriterule.ByID,
+		toCursor: func(_m *RequestRewriteRule) Cursor {
+			return Cursor{ID: _m.ID}
+		},
+	},
+}
+
+// ToEdge converts RequestRewriteRule into RequestRewriteRuleEdge.
+func (_m *RequestRewriteRule) ToEdge(order *RequestRewriteRuleOrder) *RequestRewriteRuleEdge {
+	if order == nil {
+		order = DefaultRequestRewriteRuleOrder
+	}
+	return &RequestRewriteRuleEdge{
 		Node:   _m,
 		Cursor: order.Field.toCursor(_m),
 	}

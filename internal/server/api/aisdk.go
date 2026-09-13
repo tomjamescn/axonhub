@@ -23,6 +23,7 @@ type AiSdkHandlersParams struct {
 	UsageLogService             *biz.UsageLogService
 	PromptService               *biz.PromptService
 	PromptProtectionRuleService *biz.PromptProtectionRuleService
+	RequestRewriteRuleService   *biz.RequestRewriteRuleService
 	QuotaService                *biz.QuotaService
 	HttpClient                  *httpclient.HttpClient
 	LiveStreamRegistry          *biz.LiveStreamRegistry
@@ -51,6 +52,7 @@ func NewAiSDKHandlers(params AiSdkHandlersParams) *AiSDKHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 			StreamWriter: WriteJSONStream,
 		},

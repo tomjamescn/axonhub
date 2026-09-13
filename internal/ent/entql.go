@@ -21,6 +21,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
+	"github.com/looplj/axonhub/internal/ent/requestrewriterule"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/system"
 	"github.com/looplj/axonhub/internal/ent/thread"
@@ -38,7 +39,7 @@ import (
 
 // schemaGraph holds a representation of ent/schema at runtime.
 var schemaGraph = func() *sqlgraph.Schema {
-	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 25)}
+	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 26)}
 	graph.Nodes[0] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   apikey.Table,
@@ -462,6 +463,28 @@ var schemaGraph = func() *sqlgraph.Schema {
 	}
 	graph.Nodes[17] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
+			Table:   requestrewriterule.Table,
+			Columns: requestrewriterule.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: requestrewriterule.FieldID,
+			},
+		},
+		Type: "RequestRewriteRule",
+		Fields: map[string]*sqlgraph.FieldSpec{
+			requestrewriterule.FieldCreatedAt:    {Type: field.TypeTime, Column: requestrewriterule.FieldCreatedAt},
+			requestrewriterule.FieldUpdatedAt:    {Type: field.TypeTime, Column: requestrewriterule.FieldUpdatedAt},
+			requestrewriterule.FieldDeletedAt:    {Type: field.TypeInt, Column: requestrewriterule.FieldDeletedAt},
+			requestrewriterule.FieldUserID:       {Type: field.TypeInt, Column: requestrewriterule.FieldUserID},
+			requestrewriterule.FieldName:         {Type: field.TypeString, Column: requestrewriterule.FieldName},
+			requestrewriterule.FieldDescription:  {Type: field.TypeString, Column: requestrewriterule.FieldDescription},
+			requestrewriterule.FieldModelPattern: {Type: field.TypeString, Column: requestrewriterule.FieldModelPattern},
+			requestrewriterule.FieldStatus:       {Type: field.TypeEnum, Column: requestrewriterule.FieldStatus},
+			requestrewriterule.FieldFieldMaps:    {Type: field.TypeJSON, Column: requestrewriterule.FieldFieldMaps},
+		},
+	}
+	graph.Nodes[18] = &sqlgraph.Node{
+		NodeSpec: sqlgraph.NodeSpec{
 			Table:   role.Table,
 			Columns: role.Columns,
 			ID: &sqlgraph.FieldSpec{
@@ -480,7 +503,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			role.FieldScopes:    {Type: field.TypeJSON, Column: role.FieldScopes},
 		},
 	}
-	graph.Nodes[18] = &sqlgraph.Node{
+	graph.Nodes[19] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   system.Table,
 			Columns: system.Columns,
@@ -498,7 +521,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			system.FieldValue:     {Type: field.TypeString, Column: system.FieldValue},
 		},
 	}
-	graph.Nodes[19] = &sqlgraph.Node{
+	graph.Nodes[20] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   thread.Table,
 			Columns: thread.Columns,
@@ -516,7 +539,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			thread.FieldStatus:    {Type: field.TypeEnum, Column: thread.FieldStatus},
 		},
 	}
-	graph.Nodes[20] = &sqlgraph.Node{
+	graph.Nodes[21] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   trace.Table,
 			Columns: trace.Columns,
@@ -535,7 +558,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			trace.FieldStatus:    {Type: field.TypeEnum, Column: trace.FieldStatus},
 		},
 	}
-	graph.Nodes[21] = &sqlgraph.Node{
+	graph.Nodes[22] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   usagelog.Table,
 			Columns: usagelog.Columns,
@@ -572,7 +595,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			usagelog.FieldCostPriceReferenceID:               {Type: field.TypeString, Column: usagelog.FieldCostPriceReferenceID},
 		},
 	}
-	graph.Nodes[22] = &sqlgraph.Node{
+	graph.Nodes[23] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   user.Table,
 			Columns: user.Columns,
@@ -597,7 +620,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			user.FieldScopes:         {Type: field.TypeJSON, Column: user.FieldScopes},
 		},
 	}
-	graph.Nodes[23] = &sqlgraph.Node{
+	graph.Nodes[24] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   userproject.Table,
 			Columns: userproject.Columns,
@@ -616,7 +639,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			userproject.FieldScopes:    {Type: field.TypeJSON, Column: userproject.FieldScopes},
 		},
 	}
-	graph.Nodes[24] = &sqlgraph.Node{
+	graph.Nodes[25] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   userrole.Table,
 			Columns: userrole.Columns,
@@ -3679,6 +3702,91 @@ func (f *RequestExecutionFilter) WhereHasDataStorageWith(preds ...predicate.Data
 }
 
 // addPredicate implements the predicateAdder interface.
+func (_q *RequestRewriteRuleQuery) addPredicate(pred func(s *sql.Selector)) {
+	_q.predicates = append(_q.predicates, pred)
+}
+
+// Filter returns a Filter implementation to apply filters on the RequestRewriteRuleQuery builder.
+func (_q *RequestRewriteRuleQuery) Filter() *RequestRewriteRuleFilter {
+	return &RequestRewriteRuleFilter{config: _q.config, predicateAdder: _q}
+}
+
+// addPredicate implements the predicateAdder interface.
+func (m *RequestRewriteRuleMutation) addPredicate(pred func(s *sql.Selector)) {
+	m.predicates = append(m.predicates, pred)
+}
+
+// Filter returns an entql.Where implementation to apply filters on the RequestRewriteRuleMutation builder.
+func (m *RequestRewriteRuleMutation) Filter() *RequestRewriteRuleFilter {
+	return &RequestRewriteRuleFilter{config: m.config, predicateAdder: m}
+}
+
+// RequestRewriteRuleFilter provides a generic filtering capability at runtime for RequestRewriteRuleQuery.
+type RequestRewriteRuleFilter struct {
+	predicateAdder
+	config
+}
+
+// Where applies the entql predicate on the query filter.
+func (f *RequestRewriteRuleFilter) Where(p entql.P) {
+	f.addPredicate(func(s *sql.Selector) {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[17].Type, p, s); err != nil {
+			s.AddError(err)
+		}
+	})
+}
+
+// WhereID applies the entql int predicate on the id field.
+func (f *RequestRewriteRuleFilter) WhereID(p entql.IntP) {
+	f.Where(p.Field(requestrewriterule.FieldID))
+}
+
+// WhereCreatedAt applies the entql time.Time predicate on the created_at field.
+func (f *RequestRewriteRuleFilter) WhereCreatedAt(p entql.TimeP) {
+	f.Where(p.Field(requestrewriterule.FieldCreatedAt))
+}
+
+// WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
+func (f *RequestRewriteRuleFilter) WhereUpdatedAt(p entql.TimeP) {
+	f.Where(p.Field(requestrewriterule.FieldUpdatedAt))
+}
+
+// WhereDeletedAt applies the entql int predicate on the deleted_at field.
+func (f *RequestRewriteRuleFilter) WhereDeletedAt(p entql.IntP) {
+	f.Where(p.Field(requestrewriterule.FieldDeletedAt))
+}
+
+// WhereUserID applies the entql int predicate on the user_id field.
+func (f *RequestRewriteRuleFilter) WhereUserID(p entql.IntP) {
+	f.Where(p.Field(requestrewriterule.FieldUserID))
+}
+
+// WhereName applies the entql string predicate on the name field.
+func (f *RequestRewriteRuleFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(requestrewriterule.FieldName))
+}
+
+// WhereDescription applies the entql string predicate on the description field.
+func (f *RequestRewriteRuleFilter) WhereDescription(p entql.StringP) {
+	f.Where(p.Field(requestrewriterule.FieldDescription))
+}
+
+// WhereModelPattern applies the entql string predicate on the model_pattern field.
+func (f *RequestRewriteRuleFilter) WhereModelPattern(p entql.StringP) {
+	f.Where(p.Field(requestrewriterule.FieldModelPattern))
+}
+
+// WhereStatus applies the entql string predicate on the status field.
+func (f *RequestRewriteRuleFilter) WhereStatus(p entql.StringP) {
+	f.Where(p.Field(requestrewriterule.FieldStatus))
+}
+
+// WhereFieldMaps applies the entql json.RawMessage predicate on the field_maps field.
+func (f *RequestRewriteRuleFilter) WhereFieldMaps(p entql.BytesP) {
+	f.Where(p.Field(requestrewriterule.FieldFieldMaps))
+}
+
+// addPredicate implements the predicateAdder interface.
 func (_q *RoleQuery) addPredicate(pred func(s *sql.Selector)) {
 	_q.predicates = append(_q.predicates, pred)
 }
@@ -3707,7 +3815,7 @@ type RoleFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *RoleFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[17].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[18].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -3824,7 +3932,7 @@ type SystemFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *SystemFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[18].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[19].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -3889,7 +3997,7 @@ type ThreadFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ThreadFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[19].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[20].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -3982,7 +4090,7 @@ type TraceFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *TraceFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[20].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[21].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -4094,7 +4202,7 @@ type UsageLogFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *UsageLogFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[21].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[22].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -4296,7 +4404,7 @@ type UserFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *UserFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[22].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[23].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -4494,7 +4602,7 @@ type UserProjectFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *UserProjectFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[23].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[24].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -4592,7 +4700,7 @@ type UserRoleFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *UserRoleFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[24].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[25].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})

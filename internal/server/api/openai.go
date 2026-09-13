@@ -40,6 +40,7 @@ type OpenAIHandlersParams struct {
 	UsageLogService             *biz.UsageLogService
 	PromptService               *biz.PromptService
 	PromptProtectionRuleService *biz.PromptProtectionRuleService
+	RequestRewriteRuleService   *biz.RequestRewriteRuleService
 	QuotaService                *biz.QuotaService
 	HttpClient                  *httpclient.HttpClient
 	LiveStreamRegistry          *biz.LiveStreamRegistry
@@ -97,6 +98,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		CompletionHandlers: &ChatCompletionHandlers{
@@ -114,6 +116,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		ResponseCompletionHandlers: &ChatCompletionHandlers{
@@ -131,6 +134,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		CompactHandlers: &ChatCompletionHandlers{
@@ -148,6 +152,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		EmbeddingHandlers: &ChatCompletionHandlers{
@@ -165,6 +170,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		ModerationHandlers: &ChatCompletionHandlers{
@@ -182,6 +188,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		AlphaSearchHandlers: &ChatCompletionHandlers{
@@ -199,6 +206,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		ImageGenerationHandlers: &ChatCompletionHandlers{
@@ -216,6 +224,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		ImageEditHandlers: &ChatCompletionHandlers{
@@ -233,6 +242,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		ImageVariationHandlers: &ChatCompletionHandlers{
@@ -250,6 +260,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		VideoHandlers: &ChatCompletionHandlers{
@@ -267,6 +278,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		VideoInboundTransformer: videoInbound,
@@ -290,6 +302,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		SpeechInboundTransformer: speechInbound,
@@ -308,6 +321,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 		TranslationHandlers: &ChatCompletionHandlers{
@@ -325,6 +339,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 		},
 	}

@@ -29,6 +29,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
+	"github.com/looplj/axonhub/internal/ent/requestrewriterule"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/system"
 	"github.com/looplj/axonhub/internal/ent/thread"
@@ -66,6 +67,7 @@ const (
 	TypeProviderQuotaStatus      = "ProviderQuotaStatus"
 	TypeRequest                  = "Request"
 	TypeRequestExecution         = "RequestExecution"
+	TypeRequestRewriteRule       = "RequestRewriteRule"
 	TypeRole                     = "Role"
 	TypeSystem                   = "System"
 	TypeThread                   = "Thread"
@@ -21021,6 +21023,872 @@ func (m *RequestExecutionMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown RequestExecution edge %s", name)
+}
+
+// RequestRewriteRuleMutation represents an operation that mutates the RequestRewriteRule nodes in the graph.
+type RequestRewriteRuleMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	created_at       *time.Time
+	updated_at       *time.Time
+	deleted_at       *int
+	adddeleted_at    *int
+	user_id          *int
+	adduser_id       *int
+	name             *string
+	description      *string
+	model_pattern    *string
+	status           *requestrewriterule.Status
+	field_maps       *[]objects.RequestRewriteFieldMap
+	appendfield_maps []objects.RequestRewriteFieldMap
+	clearedFields    map[string]struct{}
+	done             bool
+	oldValue         func(context.Context) (*RequestRewriteRule, error)
+	predicates       []predicate.RequestRewriteRule
+}
+
+var _ ent.Mutation = (*RequestRewriteRuleMutation)(nil)
+
+// requestrewriteruleOption allows management of the mutation configuration using functional options.
+type requestrewriteruleOption func(*RequestRewriteRuleMutation)
+
+// newRequestRewriteRuleMutation creates new mutation for the RequestRewriteRule entity.
+func newRequestRewriteRuleMutation(c config, op Op, opts ...requestrewriteruleOption) *RequestRewriteRuleMutation {
+	m := &RequestRewriteRuleMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeRequestRewriteRule,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withRequestRewriteRuleID sets the ID field of the mutation.
+func withRequestRewriteRuleID(id int) requestrewriteruleOption {
+	return func(m *RequestRewriteRuleMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *RequestRewriteRule
+		)
+		m.oldValue = func(ctx context.Context) (*RequestRewriteRule, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().RequestRewriteRule.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withRequestRewriteRule sets the old RequestRewriteRule of the mutation.
+func withRequestRewriteRule(node *RequestRewriteRule) requestrewriteruleOption {
+	return func(m *RequestRewriteRuleMutation) {
+		m.oldValue = func(context.Context) (*RequestRewriteRule, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m RequestRewriteRuleMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m RequestRewriteRuleMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *RequestRewriteRuleMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *RequestRewriteRuleMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().RequestRewriteRule.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *RequestRewriteRuleMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *RequestRewriteRuleMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the RequestRewriteRule entity.
+// If the RequestRewriteRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestRewriteRuleMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *RequestRewriteRuleMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *RequestRewriteRuleMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *RequestRewriteRuleMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the RequestRewriteRule entity.
+// If the RequestRewriteRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestRewriteRuleMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *RequestRewriteRuleMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *RequestRewriteRuleMutation) SetDeletedAt(i int) {
+	m.deleted_at = &i
+	m.adddeleted_at = nil
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *RequestRewriteRuleMutation) DeletedAt() (r int, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the RequestRewriteRule entity.
+// If the RequestRewriteRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestRewriteRuleMutation) OldDeletedAt(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// AddDeletedAt adds i to the "deleted_at" field.
+func (m *RequestRewriteRuleMutation) AddDeletedAt(i int) {
+	if m.adddeleted_at != nil {
+		*m.adddeleted_at += i
+	} else {
+		m.adddeleted_at = &i
+	}
+}
+
+// AddedDeletedAt returns the value that was added to the "deleted_at" field in this mutation.
+func (m *RequestRewriteRuleMutation) AddedDeletedAt() (r int, exists bool) {
+	v := m.adddeleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *RequestRewriteRuleMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	m.adddeleted_at = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *RequestRewriteRuleMutation) SetUserID(i int) {
+	m.user_id = &i
+	m.adduser_id = nil
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *RequestRewriteRuleMutation) UserID() (r int, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the RequestRewriteRule entity.
+// If the RequestRewriteRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestRewriteRuleMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// AddUserID adds i to the "user_id" field.
+func (m *RequestRewriteRuleMutation) AddUserID(i int) {
+	if m.adduser_id != nil {
+		*m.adduser_id += i
+	} else {
+		m.adduser_id = &i
+	}
+}
+
+// AddedUserID returns the value that was added to the "user_id" field in this mutation.
+func (m *RequestRewriteRuleMutation) AddedUserID() (r int, exists bool) {
+	v := m.adduser_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (m *RequestRewriteRuleMutation) ClearUserID() {
+	m.user_id = nil
+	m.adduser_id = nil
+	m.clearedFields[requestrewriterule.FieldUserID] = struct{}{}
+}
+
+// UserIDCleared returns if the "user_id" field was cleared in this mutation.
+func (m *RequestRewriteRuleMutation) UserIDCleared() bool {
+	_, ok := m.clearedFields[requestrewriterule.FieldUserID]
+	return ok
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *RequestRewriteRuleMutation) ResetUserID() {
+	m.user_id = nil
+	m.adduser_id = nil
+	delete(m.clearedFields, requestrewriterule.FieldUserID)
+}
+
+// SetName sets the "name" field.
+func (m *RequestRewriteRuleMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *RequestRewriteRuleMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the RequestRewriteRule entity.
+// If the RequestRewriteRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestRewriteRuleMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *RequestRewriteRuleMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *RequestRewriteRuleMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *RequestRewriteRuleMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the RequestRewriteRule entity.
+// If the RequestRewriteRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestRewriteRuleMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *RequestRewriteRuleMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetModelPattern sets the "model_pattern" field.
+func (m *RequestRewriteRuleMutation) SetModelPattern(s string) {
+	m.model_pattern = &s
+}
+
+// ModelPattern returns the value of the "model_pattern" field in the mutation.
+func (m *RequestRewriteRuleMutation) ModelPattern() (r string, exists bool) {
+	v := m.model_pattern
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModelPattern returns the old "model_pattern" field's value of the RequestRewriteRule entity.
+// If the RequestRewriteRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestRewriteRuleMutation) OldModelPattern(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModelPattern is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModelPattern requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModelPattern: %w", err)
+	}
+	return oldValue.ModelPattern, nil
+}
+
+// ResetModelPattern resets all changes to the "model_pattern" field.
+func (m *RequestRewriteRuleMutation) ResetModelPattern() {
+	m.model_pattern = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *RequestRewriteRuleMutation) SetStatus(r requestrewriterule.Status) {
+	m.status = &r
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *RequestRewriteRuleMutation) Status() (r requestrewriterule.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the RequestRewriteRule entity.
+// If the RequestRewriteRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestRewriteRuleMutation) OldStatus(ctx context.Context) (v requestrewriterule.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *RequestRewriteRuleMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetFieldMaps sets the "field_maps" field.
+func (m *RequestRewriteRuleMutation) SetFieldMaps(orfm []objects.RequestRewriteFieldMap) {
+	m.field_maps = &orfm
+	m.appendfield_maps = nil
+}
+
+// FieldMaps returns the value of the "field_maps" field in the mutation.
+func (m *RequestRewriteRuleMutation) FieldMaps() (r []objects.RequestRewriteFieldMap, exists bool) {
+	v := m.field_maps
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFieldMaps returns the old "field_maps" field's value of the RequestRewriteRule entity.
+// If the RequestRewriteRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestRewriteRuleMutation) OldFieldMaps(ctx context.Context) (v []objects.RequestRewriteFieldMap, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFieldMaps is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFieldMaps requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFieldMaps: %w", err)
+	}
+	return oldValue.FieldMaps, nil
+}
+
+// AppendFieldMaps adds orfm to the "field_maps" field.
+func (m *RequestRewriteRuleMutation) AppendFieldMaps(orfm []objects.RequestRewriteFieldMap) {
+	m.appendfield_maps = append(m.appendfield_maps, orfm...)
+}
+
+// AppendedFieldMaps returns the list of values that were appended to the "field_maps" field in this mutation.
+func (m *RequestRewriteRuleMutation) AppendedFieldMaps() ([]objects.RequestRewriteFieldMap, bool) {
+	if len(m.appendfield_maps) == 0 {
+		return nil, false
+	}
+	return m.appendfield_maps, true
+}
+
+// ResetFieldMaps resets all changes to the "field_maps" field.
+func (m *RequestRewriteRuleMutation) ResetFieldMaps() {
+	m.field_maps = nil
+	m.appendfield_maps = nil
+}
+
+// Where appends a list predicates to the RequestRewriteRuleMutation builder.
+func (m *RequestRewriteRuleMutation) Where(ps ...predicate.RequestRewriteRule) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the RequestRewriteRuleMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *RequestRewriteRuleMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.RequestRewriteRule, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *RequestRewriteRuleMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *RequestRewriteRuleMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (RequestRewriteRule).
+func (m *RequestRewriteRuleMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *RequestRewriteRuleMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, requestrewriterule.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, requestrewriterule.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, requestrewriterule.FieldDeletedAt)
+	}
+	if m.user_id != nil {
+		fields = append(fields, requestrewriterule.FieldUserID)
+	}
+	if m.name != nil {
+		fields = append(fields, requestrewriterule.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, requestrewriterule.FieldDescription)
+	}
+	if m.model_pattern != nil {
+		fields = append(fields, requestrewriterule.FieldModelPattern)
+	}
+	if m.status != nil {
+		fields = append(fields, requestrewriterule.FieldStatus)
+	}
+	if m.field_maps != nil {
+		fields = append(fields, requestrewriterule.FieldFieldMaps)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *RequestRewriteRuleMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case requestrewriterule.FieldCreatedAt:
+		return m.CreatedAt()
+	case requestrewriterule.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case requestrewriterule.FieldDeletedAt:
+		return m.DeletedAt()
+	case requestrewriterule.FieldUserID:
+		return m.UserID()
+	case requestrewriterule.FieldName:
+		return m.Name()
+	case requestrewriterule.FieldDescription:
+		return m.Description()
+	case requestrewriterule.FieldModelPattern:
+		return m.ModelPattern()
+	case requestrewriterule.FieldStatus:
+		return m.Status()
+	case requestrewriterule.FieldFieldMaps:
+		return m.FieldMaps()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *RequestRewriteRuleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case requestrewriterule.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case requestrewriterule.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case requestrewriterule.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case requestrewriterule.FieldUserID:
+		return m.OldUserID(ctx)
+	case requestrewriterule.FieldName:
+		return m.OldName(ctx)
+	case requestrewriterule.FieldDescription:
+		return m.OldDescription(ctx)
+	case requestrewriterule.FieldModelPattern:
+		return m.OldModelPattern(ctx)
+	case requestrewriterule.FieldStatus:
+		return m.OldStatus(ctx)
+	case requestrewriterule.FieldFieldMaps:
+		return m.OldFieldMaps(ctx)
+	}
+	return nil, fmt.Errorf("unknown RequestRewriteRule field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RequestRewriteRuleMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case requestrewriterule.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case requestrewriterule.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case requestrewriterule.FieldDeletedAt:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case requestrewriterule.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case requestrewriterule.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case requestrewriterule.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case requestrewriterule.FieldModelPattern:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModelPattern(v)
+		return nil
+	case requestrewriterule.FieldStatus:
+		v, ok := value.(requestrewriterule.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case requestrewriterule.FieldFieldMaps:
+		v, ok := value.([]objects.RequestRewriteFieldMap)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFieldMaps(v)
+		return nil
+	}
+	return fmt.Errorf("unknown RequestRewriteRule field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *RequestRewriteRuleMutation) AddedFields() []string {
+	var fields []string
+	if m.adddeleted_at != nil {
+		fields = append(fields, requestrewriterule.FieldDeletedAt)
+	}
+	if m.adduser_id != nil {
+		fields = append(fields, requestrewriterule.FieldUserID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *RequestRewriteRuleMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case requestrewriterule.FieldDeletedAt:
+		return m.AddedDeletedAt()
+	case requestrewriterule.FieldUserID:
+		return m.AddedUserID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RequestRewriteRuleMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case requestrewriterule.FieldDeletedAt:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDeletedAt(v)
+		return nil
+	case requestrewriterule.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown RequestRewriteRule numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *RequestRewriteRuleMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(requestrewriterule.FieldUserID) {
+		fields = append(fields, requestrewriterule.FieldUserID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *RequestRewriteRuleMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *RequestRewriteRuleMutation) ClearField(name string) error {
+	switch name {
+	case requestrewriterule.FieldUserID:
+		m.ClearUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown RequestRewriteRule nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *RequestRewriteRuleMutation) ResetField(name string) error {
+	switch name {
+	case requestrewriterule.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case requestrewriterule.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case requestrewriterule.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case requestrewriterule.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case requestrewriterule.FieldName:
+		m.ResetName()
+		return nil
+	case requestrewriterule.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case requestrewriterule.FieldModelPattern:
+		m.ResetModelPattern()
+		return nil
+	case requestrewriterule.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case requestrewriterule.FieldFieldMaps:
+		m.ResetFieldMaps()
+		return nil
+	}
+	return fmt.Errorf("unknown RequestRewriteRule field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *RequestRewriteRuleMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *RequestRewriteRuleMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *RequestRewriteRuleMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *RequestRewriteRuleMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *RequestRewriteRuleMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *RequestRewriteRuleMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *RequestRewriteRuleMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown RequestRewriteRule unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *RequestRewriteRuleMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown RequestRewriteRule edge %s", name)
 }
 
 // RoleMutation represents an operation that mutates the Role nodes in the graph.

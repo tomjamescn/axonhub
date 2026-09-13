@@ -27,6 +27,7 @@ type AnthropicHandlersParams struct {
 	UsageLogService             *biz.UsageLogService
 	PromptService               *biz.PromptService
 	PromptProtectionRuleService *biz.PromptProtectionRuleService
+	RequestRewriteRuleService   *biz.RequestRewriteRuleService
 	QuotaService                *biz.QuotaService
 	HttpClient                  *httpclient.HttpClient
 	LiveStreamRegistry          *biz.LiveStreamRegistry
@@ -59,6 +60,7 @@ func NewAnthropicHandlers(params AnthropicHandlersParams) *AnthropicHandlers {
 				params.LiveStreamRegistry,
 				params.ChannelLimiterManager,
 				params.ProviderQuotaStatusProvider,
+				params.RequestRewriteRuleService,
 			),
 			sseKeepAlive:       params.SSEKeepAliveConfig,
 			sseHeartbeatFormat: sseHeartbeatAnthropic,

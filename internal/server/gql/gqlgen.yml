@@ -14,6 +14,7 @@ schema:
   - channel_probe.graphql
   - prompt.graphql
   - prompt_protection_rule.graphql
+  - request_rewrite_rule.graphql
   - price.graphql
   - cost.graphql
   - analytics.graphql
@@ -625,6 +626,18 @@ models:
   OverrideMatchInput:
     model:
       - github.com/looplj/axonhub/internal/objects.OverrideMatch
+  RequestRewriteValueMap:
+    model:
+      - github.com/looplj/axonhub/internal/objects.RequestRewriteValueMap
+  RequestRewriteValueMapInput:
+    model:
+      - github.com/looplj/axonhub/internal/objects.RequestRewriteValueMap
+  RequestRewriteFieldMap:
+    model:
+      - github.com/looplj/axonhub/internal/objects.RequestRewriteFieldMap
+  RequestRewriteFieldMapInput:
+    model:
+      - github.com/looplj/axonhub/internal/objects.RequestRewriteFieldMap
   TierCost:
     model:
       - github.com/looplj/axonhub/internal/objects.TierCost

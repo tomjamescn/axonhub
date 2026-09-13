@@ -32,6 +32,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
+	"github.com/looplj/axonhub/internal/ent/requestrewriterule"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/system"
 	"github.com/looplj/axonhub/internal/ent/thread"
@@ -81,6 +82,8 @@ type Client struct {
 	Request *RequestClient
 	// RequestExecution is the client for interacting with the RequestExecution builders.
 	RequestExecution *RequestExecutionClient
+	// RequestRewriteRule is the client for interacting with the RequestRewriteRule builders.
+	RequestRewriteRule *RequestRewriteRuleClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// System is the client for interacting with the System builders.
@@ -127,6 +130,7 @@ func (c *Client) init() {
 	c.ProviderQuotaStatus = NewProviderQuotaStatusClient(c.config)
 	c.Request = NewRequestClient(c.config)
 	c.RequestExecution = NewRequestExecutionClient(c.config)
+	c.RequestRewriteRule = NewRequestRewriteRuleClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.System = NewSystemClient(c.config)
 	c.Thread = NewThreadClient(c.config)
@@ -244,6 +248,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ProviderQuotaStatus:      NewProviderQuotaStatusClient(cfg),
 		Request:                  NewRequestClient(cfg),
 		RequestExecution:         NewRequestExecutionClient(cfg),
+		RequestRewriteRule:       NewRequestRewriteRuleClient(cfg),
 		Role:                     NewRoleClient(cfg),
 		System:                   NewSystemClient(cfg),
 		Thread:                   NewThreadClient(cfg),
@@ -288,6 +293,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ProviderQuotaStatus:      NewProviderQuotaStatusClient(cfg),
 		Request:                  NewRequestClient(cfg),
 		RequestExecution:         NewRequestExecutionClient(cfg),
+		RequestRewriteRule:       NewRequestRewriteRuleClient(cfg),
 		Role:                     NewRoleClient(cfg),
 		System:                   NewSystemClient(cfg),
 		Thread:                   NewThreadClient(cfg),
@@ -329,8 +335,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.ChannelModelPriceVersion, c.ChannelOverrideTemplate, c.ChannelProbe,
 		c.DataStorage, c.Invitation, c.Model, c.OIDCIdentity, c.Project, c.Prompt,
 		c.PromptProtectionRule, c.ProviderQuotaStatus, c.Request, c.RequestExecution,
-		c.Role, c.System, c.Thread, c.Trace, c.UsageLog, c.User, c.UserProject,
-		c.UserRole,
+		c.RequestRewriteRule, c.Role, c.System, c.Thread, c.Trace, c.UsageLog, c.User,
+		c.UserProject, c.UserRole,
 	} {
 		n.Use(hooks...)
 	}
@@ -344,8 +350,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.ChannelModelPriceVersion, c.ChannelOverrideTemplate, c.ChannelProbe,
 		c.DataStorage, c.Invitation, c.Model, c.OIDCIdentity, c.Project, c.Prompt,
 		c.PromptProtectionRule, c.ProviderQuotaStatus, c.Request, c.RequestExecution,
-		c.Role, c.System, c.Thread, c.Trace, c.UsageLog, c.User, c.UserProject,
-		c.UserRole,
+		c.RequestRewriteRule, c.Role, c.System, c.Thread, c.Trace, c.UsageLog, c.User,
+		c.UserProject, c.UserRole,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -388,6 +394,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Request.mutate(ctx, m)
 	case *RequestExecutionMutation:
 		return c.RequestExecution.mutate(ctx, m)
+	case *RequestRewriteRuleMutation:
+		return c.RequestRewriteRule.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
 	case *SystemMutation:
@@ -3370,6 +3378,141 @@ func (c *RequestExecutionClient) mutate(ctx context.Context, m *RequestExecution
 	}
 }
 
+// RequestRewriteRuleClient is a client for the RequestRewriteRule schema.
+type RequestRewriteRuleClient struct {
+	config
+}
+
+// NewRequestRewriteRuleClient returns a client for the RequestRewriteRule from the given config.
+func NewRequestRewriteRuleClient(c config) *RequestRewriteRuleClient {
+	return &RequestRewriteRuleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `requestrewriterule.Hooks(f(g(h())))`.
+func (c *RequestRewriteRuleClient) Use(hooks ...Hook) {
+	c.hooks.RequestRewriteRule = append(c.hooks.RequestRewriteRule, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `requestrewriterule.Intercept(f(g(h())))`.
+func (c *RequestRewriteRuleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RequestRewriteRule = append(c.inters.RequestRewriteRule, interceptors...)
+}
+
+// Create returns a builder for creating a RequestRewriteRule entity.
+func (c *RequestRewriteRuleClient) Create() *RequestRewriteRuleCreate {
+	mutation := newRequestRewriteRuleMutation(c.config, OpCreate)
+	return &RequestRewriteRuleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RequestRewriteRule entities.
+func (c *RequestRewriteRuleClient) CreateBulk(builders ...*RequestRewriteRuleCreate) *RequestRewriteRuleCreateBulk {
+	return &RequestRewriteRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RequestRewriteRuleClient) MapCreateBulk(slice any, setFunc func(*RequestRewriteRuleCreate, int)) *RequestRewriteRuleCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RequestRewriteRuleCreateBulk{err: fmt.Errorf("calling to RequestRewriteRuleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RequestRewriteRuleCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RequestRewriteRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RequestRewriteRule.
+func (c *RequestRewriteRuleClient) Update() *RequestRewriteRuleUpdate {
+	mutation := newRequestRewriteRuleMutation(c.config, OpUpdate)
+	return &RequestRewriteRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RequestRewriteRuleClient) UpdateOne(_m *RequestRewriteRule) *RequestRewriteRuleUpdateOne {
+	mutation := newRequestRewriteRuleMutation(c.config, OpUpdateOne, withRequestRewriteRule(_m))
+	return &RequestRewriteRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RequestRewriteRuleClient) UpdateOneID(id int) *RequestRewriteRuleUpdateOne {
+	mutation := newRequestRewriteRuleMutation(c.config, OpUpdateOne, withRequestRewriteRuleID(id))
+	return &RequestRewriteRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RequestRewriteRule.
+func (c *RequestRewriteRuleClient) Delete() *RequestRewriteRuleDelete {
+	mutation := newRequestRewriteRuleMutation(c.config, OpDelete)
+	return &RequestRewriteRuleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RequestRewriteRuleClient) DeleteOne(_m *RequestRewriteRule) *RequestRewriteRuleDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RequestRewriteRuleClient) DeleteOneID(id int) *RequestRewriteRuleDeleteOne {
+	builder := c.Delete().Where(requestrewriterule.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RequestRewriteRuleDeleteOne{builder}
+}
+
+// Query returns a query builder for RequestRewriteRule.
+func (c *RequestRewriteRuleClient) Query() *RequestRewriteRuleQuery {
+	return &RequestRewriteRuleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRequestRewriteRule},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RequestRewriteRule entity by its id.
+func (c *RequestRewriteRuleClient) Get(ctx context.Context, id int) (*RequestRewriteRule, error) {
+	return c.Query().Where(requestrewriterule.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RequestRewriteRuleClient) GetX(ctx context.Context, id int) *RequestRewriteRule {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *RequestRewriteRuleClient) Hooks() []Hook {
+	hooks := c.hooks.RequestRewriteRule
+	return append(hooks[:len(hooks):len(hooks)], requestrewriterule.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *RequestRewriteRuleClient) Interceptors() []Interceptor {
+	inters := c.inters.RequestRewriteRule
+	return append(inters[:len(inters):len(inters)], requestrewriterule.Interceptors[:]...)
+}
+
+func (c *RequestRewriteRuleClient) mutate(ctx context.Context, m *RequestRewriteRuleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RequestRewriteRuleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RequestRewriteRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RequestRewriteRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RequestRewriteRuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RequestRewriteRule mutation op: %q", m.Op())
+	}
+}
+
 // RoleClient is a client for the Role schema.
 type RoleClient struct {
 	config
@@ -4802,14 +4945,14 @@ type (
 		APIKey, APIKeyProfileTemplate, Channel, ChannelModelPrice,
 		ChannelModelPriceVersion, ChannelOverrideTemplate, ChannelProbe, DataStorage,
 		Invitation, Model, OIDCIdentity, Project, Prompt, PromptProtectionRule,
-		ProviderQuotaStatus, Request, RequestExecution, Role, System, Thread, Trace,
-		UsageLog, User, UserProject, UserRole []ent.Hook
+		ProviderQuotaStatus, Request, RequestExecution, RequestRewriteRule, Role,
+		System, Thread, Trace, UsageLog, User, UserProject, UserRole []ent.Hook
 	}
 	inters struct {
 		APIKey, APIKeyProfileTemplate, Channel, ChannelModelPrice,
 		ChannelModelPriceVersion, ChannelOverrideTemplate, ChannelProbe, DataStorage,
 		Invitation, Model, OIDCIdentity, Project, Prompt, PromptProtectionRule,
-		ProviderQuotaStatus, Request, RequestExecution, Role, System, Thread, Trace,
-		UsageLog, User, UserProject, UserRole []ent.Interceptor
+		ProviderQuotaStatus, Request, RequestExecution, RequestRewriteRule, Role,
+		System, Thread, Trace, UsageLog, User, UserProject, UserRole []ent.Interceptor
 	}
 )

@@ -13,6 +13,7 @@ import {
   IconAi,
   IconNote,
   IconChartBar,
+  IconArrowsExchange,
 } from '@tabler/icons-react';
 import { Command } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -85,6 +86,11 @@ export function useSidebarData(): SidebarData {
           title: t('sidebar.items.models'),
           url: '/models',
           icon: IconRobot,
+        } as NavLink,
+        {
+          title: t('sidebar.items.requestRewriteRules'),
+          url: '/request-rewrite-rules',
+          icon: IconArrowsExchange,
         } as NavLink,
         {
           title: t('sidebar.items.promptProtectionRules'),

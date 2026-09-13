@@ -519,6 +519,30 @@ func (f RequestExecutionMutationRuleFunc) EvalMutation(ctx context.Context, m en
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.RequestExecutionMutation", m)
 }
 
+// The RequestRewriteRuleQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type RequestRewriteRuleQueryRuleFunc func(context.Context, *ent.RequestRewriteRuleQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f RequestRewriteRuleQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.RequestRewriteRuleQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.RequestRewriteRuleQuery", q)
+}
+
+// The RequestRewriteRuleMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type RequestRewriteRuleMutationRuleFunc func(context.Context, *ent.RequestRewriteRuleMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f RequestRewriteRuleMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.RequestRewriteRuleMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.RequestRewriteRuleMutation", m)
+}
+
 // The RoleQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type RoleQueryRuleFunc func(context.Context, *ent.RoleQuery) error
@@ -780,6 +804,8 @@ func queryFilter(q ent.Query) (Filter, error) {
 		return q.Filter(), nil
 	case *ent.RequestExecutionQuery:
 		return q.Filter(), nil
+	case *ent.RequestRewriteRuleQuery:
+		return q.Filter(), nil
 	case *ent.RoleQuery:
 		return q.Filter(), nil
 	case *ent.SystemQuery:
@@ -836,6 +862,8 @@ func mutationFilter(m ent.Mutation) (Filter, error) {
 	case *ent.RequestMutation:
 		return m.Filter(), nil
 	case *ent.RequestExecutionMutation:
+		return m.Filter(), nil
+	case *ent.RequestRewriteRuleMutation:
 		return m.Filter(), nil
 	case *ent.RoleMutation:
 		return m.Filter(), nil

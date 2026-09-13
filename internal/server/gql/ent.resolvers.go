@@ -499,6 +499,22 @@ func (r *queryResolver) Requests(ctx context.Context, after *entgql.Cursor[int],
 	)
 }
 
+// RequestRewriteRules is the resolver for the requestRewriteRules field.
+func (r *queryResolver) RequestRewriteRules(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.RequestRewriteRuleOrder, where *ent.RequestRewriteRuleWhereInput) (*ent.RequestRewriteRuleConnection, error) {
+	if err := validatePaginationArgs(first, last); err != nil {
+		return nil, err
+	}
+
+	if orderBy != nil && orderBy.Field.String() == "CREATED_AT" {
+		orderBy.Field = ent.DefaultRequestRewriteRuleOrder.Field
+	}
+
+	return r.client.RequestRewriteRule.Query().Paginate(ctx, after, first, before, last,
+		ent.WithRequestRewriteRuleOrder(orderBy),
+		ent.WithRequestRewriteRuleFilter(where.Filter),
+	)
+}
+
 // Roles is the resolver for the roles field.
 func (r *queryResolver) Roles(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.RoleOrder, where *ent.RoleWhereInput) (*ent.RoleConnection, error) {
 	if err := validatePaginationArgs(first, last); err != nil {
@@ -773,6 +789,14 @@ func (r *requestExecutionResolver) Channel(ctx context.Context, obj *ent.Request
 }
 
 // ID is the resolver for the id field.
+func (r *requestRewriteRuleResolver) ID(ctx context.Context, obj *ent.RequestRewriteRule) (*objects.GUID, error) {
+	return &objects.GUID{
+		Type: ent.TypeRequestRewriteRule,
+		ID:   obj.ID,
+	}, nil
+}
+
+// ID is the resolver for the id field.
 func (r *roleResolver) ID(ctx context.Context, obj *ent.Role) (*objects.GUID, error) {
 	return &objects.GUID{
 		Type: ent.TypeRole,
@@ -1012,6 +1036,11 @@ func (r *Resolver) Request() RequestResolver { return &requestResolver{r} }
 // RequestExecution returns RequestExecutionResolver implementation.
 func (r *Resolver) RequestExecution() RequestExecutionResolver { return &requestExecutionResolver{r} }
 
+// RequestRewriteRule returns RequestRewriteRuleResolver implementation.
+func (r *Resolver) RequestRewriteRule() RequestRewriteRuleResolver {
+	return &requestRewriteRuleResolver{r}
+}
+
 // Role returns RoleResolver implementation.
 func (r *Resolver) Role() RoleResolver { return &roleResolver{r} }
 
@@ -1053,6 +1082,7 @@ type providerQuotaStatusResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type requestResolver struct{ *Resolver }
 type requestExecutionResolver struct{ *Resolver }
+type requestRewriteRuleResolver struct{ *Resolver }
 type roleResolver struct{ *Resolver }
 type systemResolver struct{ *Resolver }
 type threadResolver struct{ *Resolver }

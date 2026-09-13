@@ -33,6 +33,7 @@ func NewChatCompletionOrchestrator(
 	liveStreamRegistry *biz.LiveStreamRegistry,
 	channelLimiterManager *ChannelLimiterManager,
 	quotaProvider ProviderQuotaStatusProvider,
+	requestRewriteRuleService *biz.RequestRewriteRuleService,
 ) *ChatCompletionOrchestrator {
 	rateLimitTracker := NewChannelRequestTracker()
 
@@ -76,8 +77,9 @@ func NewChatCompletionOrchestrator(
 		UsageLogService:    usageLogService,
 		QuotaService:       quotaService,
 		LiveStreamRegistry: liveStreamRegistry,
-		PromptProvider:     promptService,
-		PromptProtecter:    promptProtectionRuleService,
+		PromptProvider:            promptService,
+		PromptProtecter:           promptProtectionRuleService,
+		RequestRewriteRuleService: requestRewriteRuleService,
 		Middlewares: []pipeline.Middleware{
 			cc.SystemCacheCompatibility(),
 			stream.EnsureUsage(),
@@ -107,9 +109,10 @@ type ChatCompletionOrchestrator struct {
 	UsageLogService    *biz.UsageLogService
 	QuotaService       *biz.QuotaService
 	LiveStreamRegistry *biz.LiveStreamRegistry
-	PromptProvider     PromptProvider
-	PromptProtecter    PromptProtecter
-	Middlewares        []pipeline.Middleware
+	PromptProvider              PromptProvider
+	PromptProtecter             PromptProtecter
+	RequestRewriteRuleService   *biz.RequestRewriteRuleService
+	Middlewares                 []pipeline.Middleware
 	PipelineFactory    *pipeline.Factory
 	ModelMapper        *ModelMapper
 
@@ -248,6 +251,11 @@ func (processor *ChatCompletionOrchestrator) Process(ctx context.Context, reques
 	// Add inbound middlewares (executed after inbound.TransformRequest)
 	middlewares = append(middlewares,
 		enforceQuota(inbound, processor.QuotaService),
+		// Request rewrite rules run before model mapping, matching the model
+		// name exactly as the client sent it. If a rule rewrites the model
+		// field, downstream flows (model access check, model mapping, channel
+		// selection) operate on the rewritten value.
+		applyRequestRewrite(requestRewriteProviderFromService(processor.RequestRewriteRuleService)),
 		applyAutoReasoningEffort(processor.SystemService),
 		checkApiKeyModelAccess(inbound),
 		applyModelMapping(inbound),

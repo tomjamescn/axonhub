@@ -1,0 +1,29 @@
+type RequestRewriteValueMap {
+  from: String!
+  to: String!
+}
+
+type RequestRewriteFieldMap {
+  path: String!
+  values: [RequestRewriteValueMap!]!
+}
+
+input RequestRewriteValueMapInput {
+  from: String!
+  to: String!
+}
+
+input RequestRewriteFieldMapInput {
+  path: String!
+  values: [RequestRewriteValueMapInput!]!
+}
+
+extend type Mutation {
+  createRequestRewriteRule(input: CreateRequestRewriteRuleInput!): RequestRewriteRule!
+  updateRequestRewriteRule(id: ID!, input: UpdateRequestRewriteRuleInput!): RequestRewriteRule!
+  deleteRequestRewriteRule(id: ID!): Boolean!
+  updateRequestRewriteRuleStatus(id: ID!, status: RequestRewriteRuleStatus!): Boolean!
+  bulkDeleteRequestRewriteRules(ids: [ID!]!): Boolean!
+  bulkEnableRequestRewriteRules(ids: [ID!]!): Boolean!
+  bulkDisableRequestRewriteRules(ids: [ID!]!): Boolean!
+}

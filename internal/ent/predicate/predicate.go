@@ -57,6 +57,9 @@ type Request func(*sql.Selector)
 // RequestExecution is the predicate function for requestexecution builders.
 type RequestExecution func(*sql.Selector)
 
+// RequestRewriteRule is the predicate function for requestrewriterule builders.
+type RequestRewriteRule func(*sql.Selector)
+
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
 

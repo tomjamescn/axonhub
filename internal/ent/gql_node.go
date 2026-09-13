@@ -30,6 +30,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
+	"github.com/looplj/axonhub/internal/ent/requestrewriterule"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/system"
 	"github.com/looplj/axonhub/internal/ent/thread"
@@ -126,6 +127,11 @@ var requestexecutionImplementors = []string{"RequestExecution", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*RequestExecution) IsNode() {}
+
+var requestrewriteruleImplementors = []string{"RequestRewriteRule", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*RequestRewriteRule) IsNode() {}
 
 var roleImplementors = []string{"Role", "Node"}
 
@@ -365,6 +371,15 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 			Where(requestexecution.ID(id))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, requestexecutionImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case requestrewriterule.Table:
+		query := c.RequestRewriteRule.Query().
+			Where(requestrewriterule.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, requestrewriteruleImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -758,6 +773,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.RequestExecution.Query().
 			Where(requestexecution.IDIn(ids...))
 		query, err := query.CollectFields(ctx, requestexecutionImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case requestrewriterule.Table:
+		query := c.RequestRewriteRule.Query().
+			Where(requestrewriterule.IDIn(ids...))
+		query, err := query.CollectFields(ctx, requestrewriteruleImplementors...)
 		if err != nil {
 			return nil, err
 		}

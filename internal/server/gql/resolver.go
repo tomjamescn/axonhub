@@ -44,6 +44,7 @@ type Resolver struct {
 	channelProbeService            *biz.ChannelProbeService
 	promptService                  *biz.PromptService
 	promptProtectionRuleService    *biz.PromptProtectionRuleService
+	requestRewriteRuleService      *biz.RequestRewriteRuleService
 	providerQuotaService           *biz.ProviderQuotaService
 	scheduler                      *scheduler.Scheduler
 	modelFetcher                   *biz.ModelFetcher
@@ -79,7 +80,8 @@ func NewSchema(
 	channelProbeService *biz.ChannelProbeService,
 	promptService *biz.PromptService,
 	promptProtectionRuleService *biz.PromptProtectionRuleService,
-	providerQuotaService *biz.ProviderQuotaService,
+	requestRewriteRuleService   *biz.RequestRewriteRuleService,
+	providerQuotaService        *biz.ProviderQuotaService,
 	scheduler *scheduler.Scheduler,
 	defaultSelector *orchestrator.DefaultSelector,
 	candidateSelectorDiagnostics *orchestrator.CandidateSelectorDiagnostics,
@@ -113,6 +115,7 @@ func NewSchema(
 			channelProbeService:            channelProbeService,
 			promptService:                  promptService,
 			promptProtectionRuleService:    promptProtectionRuleService,
+			requestRewriteRuleService:      requestRewriteRuleService,
 			providerQuotaService:           providerQuotaService,
 			scheduler:                      scheduler,
 			modelFetcher:                   modelFetcher,
