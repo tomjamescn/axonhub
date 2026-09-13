@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+/* Self-hosted fonts for offline deployment (committed in repo, see scripts/docker/download-fonts.sh) */
+@import './assets/fonts/fonts.css';
 
 @custom-variant dark (&:is(.dark *));
 

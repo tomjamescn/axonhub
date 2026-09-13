@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
@@ -31,7 +32,6 @@ func New(config Config) *Server {
 	}
 
 	engine := gin.New()
-
 	// Gin trusts all proxies by default. Never inherit that unsafe default:
 	// forwarded client IP headers must only be honored for explicitly configured
 	// proxy networks, otherwise IP access controls and API-key IP restrictions
@@ -71,7 +71,7 @@ func (srv *Server) Run() error {
 	addr := fmt.Sprintf("%s:%d", srv.Config.Host, srv.Config.Port)
 	srv.server = &http.Server{
 		Addr:         addr,
-		Handler:      srv.Engine,
+		Handler:      srv.handler(),
 		ReadTimeout:  srv.Config.ReadTimeout,
 		WriteTimeout: max(srv.Config.RequestTimeout, srv.Config.LLMRequestTimeout),
 	}
@@ -87,6 +87,55 @@ func (srv *Server) Run() error {
 	}
 
 	return nil
+}
+
+// handler returns the root http.Handler. When server.base_path is configured
+// (e.g. /llmproxy), every incoming request whose path is under that prefix
+// gets the prefix stripped before reaching the Gin engine, so the whole
+// application (API, GraphQL, static frontend) also works behind reverse
+// proxies that forward the URL without rewriting it. Requests without the
+// prefix are served unchanged, so direct access to the port keeps working.
+func (srv *Server) handler() http.Handler {
+	base := normalizeBasePath(srv.Config.BasePath)
+	if base == "" {
+		return srv.Engine
+	}
+
+	log.Info(context.Background(), "serving under base path", log.String("base_path", base))
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		if path == base || strings.HasPrefix(path, base+"/") {
+			trimmed := strings.TrimPrefix(path, base)
+			if trimmed == "" {
+				trimmed = "/"
+			}
+			r = r.Clone(r.Context())
+			r.URL.Path = trimmed
+			r.URL.RawPath = ""
+			r.RequestURI = r.URL.RequestURI()
+		}
+
+		srv.Engine.ServeHTTP(w, r)
+	})
+}
+
+// normalizeBasePath canonicalizes a configured base path: it trims whitespace
+// and trailing slashes, ensures a leading slash, and returns "" for the root
+// path (no prefix).
+func normalizeBasePath(p string) string {
+	p = strings.TrimSpace(p)
+	if p == "" {
+		return ""
+	}
+	if !strings.HasPrefix(p, "/") {
+		p = "/" + p
+	}
+	p = strings.TrimRight(p, "/")
+	if p == "" {
+		return ""
+	}
+	return p
 }
 
 func (srv *Server) Shutdown(ctx context.Context) error {

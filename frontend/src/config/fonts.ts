@@ -5,7 +5,9 @@
  *
  * 📝 How to Add a New Font (Tailwind v4+):
  * 1. Add the font name to the matching list below.
- * 2. Update the `<link>` tag in 'index.html' to include the new font from Google Fonts (or any other source).
+ * 2. Add the family to `CSS_URL` in `scripts/docker/download-fonts.sh`, then run
+ *    `sh scripts/docker/download-fonts.sh frontend/src/assets/fonts` to refresh the
+ *    self-hosted woff2 files and `fonts.css` (committed to the repo for offline use).
  * 3. Add the corresponding font-family stack to `fontStacks`.
  */
 

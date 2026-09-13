@@ -98,14 +98,31 @@ Besides the two listed above, the repo contains four more independent Go modules
 
 ## Sub-Path / URL Prefix Deployment
 
-AxonHub can be served under a custom URL prefix (e.g. `/llmproxy`) for reverse-proxy deployments. This is a **frontend build-time** concern only — the backend is unchanged; the reverse proxy strips the prefix before forwarding to the backend root.
+AxonHub can be served under a custom URL prefix (e.g. `/llmproxy`) for reverse-proxy deployments. Both the frontend and backend support it, so **either** proxy style works:
 
-- `Dockerfile` exposes `ARG BASE_PATH` (default `/`), which sets `VITE_BASE_PATH` and `VITE_API_BASE_PATH` for the frontend build stage.
-- `frontend/vite.config.ts` reads those env vars: sets Vite `base` and injects the build-time global `__API_BASE_PATH__` (declared in `frontend/src/vite-env.d.ts`).
-- Every API/asset path derives the prefix from `__API_BASE_PATH__`: `apiRequest` (via `API_BASE_URL`), `GRAPHQL_ENDPOINT`, TanStack Router `basepath`, the playground chat endpoint, request-detail fetches, and the sign-in redirects. With the default `/` the prefix is empty and behavior is unchanged.
-- If you add a new raw `fetch`/`WebSocket`/`EventSource` call (one that does not go through `apiRequest` or `GRAPHQL_ENDPOINT`), prefix it with `${__API_BASE_PATH__ || ''}` or sub-path deploys will break.
-- Build with a prefix: `docker build --build-arg BASE_PATH=/llmproxy -t axonhub:llmproxy .`
-- The reverse proxy must strip the prefix, e.g. nginx: `location /llmproxy/ { proxy_pass http://axonhub:8090/; }` (the trailing slash on `proxy_pass` drops the prefix). Keep `Upgrade`/`Connection` headers for SSE/WebSocket.
+- **Backend** (`internal/server/server.go`): `server.base_path` config (env `AXONHUB_SERVER_BASE_PATH`, default empty). When set, the HTTP handler strips the prefix from every matching request before routing — the app works behind proxies that forward paths **unrewritten**. Non-prefixed requests are served unchanged, so direct access to the port still works. Covered by `internal/server/base_path_test.go`.
+- **Frontend** (build-time): `Dockerfile` exposes `ARG BASE_PATH` (default `/`), which sets `VITE_BASE_PATH` and `VITE_API_BASE_PATH`.
+  - `frontend/vite.config.ts` reads those env vars: sets Vite `base` and injects the build-time global `__API_BASE_PATH__` (declared in `frontend/src/vite-env.d.ts`).
+  - Every API/asset path derives the prefix from `__API_BASE_PATH__`: `apiRequest` (via `API_BASE_URL`), `GRAPHQL_ENDPOINT`, TanStack Router `basepath`, the playground chat endpoint, request-detail fetches, and the sign-in redirects. With the default `/` the prefix is empty and behavior is unchanged.
+  - If you add a new raw `fetch`/`WebSocket`/`EventSource` call (one that does not go through `apiRequest` or `GRAPHQL_ENDPOINT`), prefix it with `${__API_BASE_PATH__ || ''}` or sub-path deploys will break.
+
+Full sub-path deployment recipe:
+
+1. Build the image: `docker build --build-arg BASE_PATH=/llmproxy -t axonhub:llmproxy .`
+2. Set `server.base_path: /llmproxy` in `config.yml` (or env `AXONHUB_SERVER_BASE_PATH=/llmproxy`) — required only when the proxy does **not** rewrite the path.
+3. Proxy — either style works:
+   - Prefix-stripping proxy (no `base_path` needed): nginx `location /llmproxy/ { proxy_pass http://axonhub:8090/; }` (trailing slash strips the prefix).
+   - Transparent proxy (forward path as-is, `base_path` required): `location /llmproxy/ { proxy_pass http://axonhub:8090; }` (no trailing slash).
+   - Keep `Upgrade`/`Connection` headers for SSE/WebSocket.
+
+## Offline Deployment (No External Static Assets)
+
+The frontend has **no external static-resource dependencies at runtime** — everything (fonts included) is served from the image:
+
+- `frontend/index.html` must not reference any CDN (Google Fonts, jsdelivr, unpkg, ...). The only runtime network traffic allowed is to the AxonHub backend itself.
+- UI fonts are self-hosted: `frontend/src/assets/fonts/` (woff2 + `fonts.css`) is **committed to the repo** and imported via `frontend/src/index.css` (`@import './assets/fonts/fonts.css'`). This keeps dev mode and Docker builds working without network access.
+- To add/refresh fonts: update the `CSS_URL` families in `scripts/docker/download-fonts.sh` (keep it in sync with `frontend/src/config/fonts.ts`), then run `sh scripts/docker/download-fonts.sh frontend/src/assets/fonts` and commit the regenerated files.
+- When adding new raw `<script src>`/`<link href>` tags pointing at third-party hosts, treat it as a breaking change for offline deployments — self-host the asset instead.
 
 ## Developer Commands
 

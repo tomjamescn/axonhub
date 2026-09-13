@@ -281,7 +281,7 @@
 
 ### 子路径 / URL 前缀部署 | Sub-Path / URL Prefix Deployment
 
-支持将 AxonHub 部署在自定义 URL 前缀下（如 `https://example.com/llmproxy`），便于反向代理聚合。该特性仅在**构建期**生效，后端无需任何改动，由反向代理剥掉前缀后转发到后端根路径。
+支持将 AxonHub 部署在自定义 URL 前缀下（如 `https://example.com/llmproxy`），便于反向代理聚合。前端在**构建期**通过 `BASE_PATH` 注入前缀，后端通过 `server.base_path` 配置支持，两种方式可配合使用：
 
 1. **构建带前缀的镜像**
 
@@ -291,7 +291,9 @@
 
    前缀默认 `/`（行为与原来完全一致）；`BASE_PATH` 会以 `VITE_BASE_PATH` / `VITE_API_BASE_PATH` 注入前端构建。
 
-2. **反向代理剥掉前缀转发**（以 nginx 为例）
+2. **反向代理转发**（二选一）
+
+   **方式 A：代理剥掉前缀**（nginx 末尾斜杠）：
 
    ```nginx
    location /llmproxy/ {
@@ -301,7 +303,27 @@
    }
    ```
 
-   之后访问 `https://example.com/llmproxy/` 即可，页面、登录、GraphQL、Playground、`/llmproxy/v1` 等全部可用。
+   **方式 B：代理原样透传**（不剥前缀），需在后端配置 `base_path`：
+
+   ```yaml
+   # config.yml
+   server:
+     base_path: /llmproxy
+   ```
+
+   或环境变量 `AXONHUB_SERVER_BASE_PATH=/llmproxy`。后端会在路由前自动剥掉该前缀；不带前缀的请求照常处理，直连端口仍可用。
+
+   两种方式都需为 SSE / WebSocket 保留 `Upgrade` / `Connection` 头。配置完成后访问 `https://example.com/llmproxy/` 即可，页面、登录、GraphQL、Playground、`/llmproxy/v1` 等全部可用。
+
+### 离线部署 | Offline Deployment
+
+AxonHub **不依赖任何外部静态资源**，可完全离线运行：
+
+- 页面运行时只访问 AxonHub 后端本身，不请求任何 CDN / 第三方域名。
+- UI 字体（Inter、Manrope、JetBrains Mono 等）已自托管在 `frontend/src/assets/fonts/` 并随镜像一起构建，无需访问 Google Fonts。
+- 因此镜像可在无外网的环境中直接 `docker run`，初始化、登录、管理后台、模型调用全部可用（调用上游模型自然仍需网络）。
+
+如需刷新/新增自托管字体：修改 `scripts/docker/download-fonts.sh` 中的字体列表（与 `frontend/src/config/fonts.ts` 保持一致），运行 `sh scripts/docker/download-fonts.sh frontend/src/assets/fonts` 并提交生成的文件。
 
 ---
 
