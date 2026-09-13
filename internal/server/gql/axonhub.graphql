@@ -216,6 +216,12 @@ enum APIKeyAutoDisableAction {
   permanent_disable_delete
 }
 
+enum APIKeyAutoDisableMode {
+  inherit
+  custom
+  off
+}
+
 type APIKeyAutoDisableRule {
   statusCodes: [Int!]
   keywordPatterns: [String!]
@@ -238,11 +244,13 @@ input APIKeyAutoDisableRuleInput {
 
 type ChannelPolicies {
   stream: CapabilityPolicy
+  apiKeyAutoDisableMode: APIKeyAutoDisableMode
   apiKeyAutoDisableRules: [APIKeyAutoDisableRule!]
 }
 
 input ChannelPoliciesInput {
   stream: CapabilityPolicy
+  apiKeyAutoDisableMode: APIKeyAutoDisableMode
   apiKeyAutoDisableRules: [APIKeyAutoDisableRuleInput!]
 }
 
@@ -426,6 +434,24 @@ input BulkUpdateChannelOrderingInput {
 }
 
 type BulkUpdateChannelOrderingResult {
+  success: Boolean!
+  updated: Int!
+  channels: [Channel!]!
+}
+
+enum BulkAutoDisableAction {
+  write_rules
+  inherit
+  off
+}
+
+input BulkUpdateChannelAutoDisableInput {
+  channelIDs: [ID!]!
+  action: BulkAutoDisableAction!
+  rules: [APIKeyAutoDisableRuleInput!]
+}
+
+type BulkUpdateChannelAutoDisablePayload {
   success: Boolean!
   updated: Int!
   channels: [Channel!]!
@@ -903,6 +929,9 @@ type Mutation {
   bulkEnableChannels(ids: [ID!]!): Boolean!
   bulkRecoverChannels(ids: [ID!]!): Boolean!
   bulkDeleteChannels(ids: [ID!]!): Boolean!
+  bulkAddChannelTags(ids: [ID!]!, tags: [String!]!): Boolean!
+  bulkRemoveChannelTags(ids: [ID!]!, tags: [String!]!): Boolean!
+  bulkManageChannelTags(ids: [ID!]!, addTags: [String!]!, removeTags: [String!]!): Boolean!
   testChannel(input: TestChannelInput!): TestChannelPayload!
   testChannelAPIKeys(channelID: ID!, modelID: String): TestChannelAPIKeysPayload!
   testChannelAPIKey(channelID: ID!, key: String!, modelID: String): TestAPIKeyResult!
@@ -910,6 +939,9 @@ type Mutation {
   bulkUpdateChannelOrdering(
     input: BulkUpdateChannelOrderingInput!
   ): BulkUpdateChannelOrderingResult!
+  bulkUpdateChannelAutoDisable(
+    input: BulkUpdateChannelAutoDisableInput!
+  ): BulkUpdateChannelAutoDisablePayload!
 
   # Channel API Key Management
   disableChannelAPIKey(channelID: ID!, key: String!): Boolean!
